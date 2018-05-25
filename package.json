@@ -1,0 +1,19 @@
+{
+  "name": "nova",
+  "version": "1.0.0",
+  "engines": {
+    "node": "v8.10"
+  },
+  "description": "Utility package for cross-platform user referrals",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test",
+    "start": "node -r dotenv/config index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.246.1",
+    "dotenv": "^5.0.1"
+  }
+}
