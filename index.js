@@ -1,10 +1,43 @@
 const AWS = require('aws-sdk');
 const Promise = require('bluebird');
+const ADJECTIVES = require('./adjectives');
 
 const sns = new AWS.SNS({
   region: process.env.SERVICE_REGION,
 });
 Promise.promisifyAll(sns);
+
+/**
+ * Generates referral code for a new user in the following format:
+ * ${first_name || 'shine'} - ${adjective} - ${count}
+ *
+ * @param data {object} data of user signing up
+ *   .firstName {string} new user's first name. Defaults to 'shine'
+ *   .v1_code {string} if user is an sms user, has a v1 code
+ *
+ */
+const generateReferralCode = async (data, db) => {
+  const name = `${data.first_name || 'shine'}`;
+  const adjective = `${ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]}`;
+  const condition = `%${name}-${adjective}%`;
+  let count;
+
+  // Get row count of users who share the same name-adj base in referral code
+  const countQuery = `
+    SELECT count(*) AS count 
+    FROM ${process.env.PHOTON_DB_REFERRALS_TABLE}
+    WHERE v2_code like ?`;
+
+  const result = await db.queryAsync(countQuery, [condition]);
+
+  if (result && result.length > 0) {
+    count = result[0].count;
+  } else {
+    count = 1;
+  }
+
+  return `${name}-${adjective}-${count}`;
+};
 
 /**
  * Adds a user to the referralsv2 table
