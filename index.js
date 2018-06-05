@@ -1,44 +1,8 @@
 const AWS = require('aws-sdk');
-const Promise = require('bluebird');
-const ADJECTIVES = require('./adjectives');
-
+const { getReferrerPlatformId, generateReferralCode } = require('./helper');
 const sns = new AWS.SNS({
-  region: process.env.SERVICE_REGION,
+  region: process.env.SERVICE_REGION
 });
-Promise.promisifyAll(sns);
-
-/**
- * Generates referral code for a new user in the following format:
- * ${first_name || 'shine'} - ${adjective} - ${count}
- *
- * @param data {object} data of user signing up
- *   .firstName {string} new user's first name. Defaults to 'shine'
- *   .v1_code {string} if user is an sms user, has a v1 code
- *
- */
-const generateReferralCode = async (data, db) => {
-  const name = `${data.first_name || 'shine'}`;
-  const adjective = `${ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]}`;
-  const condition = `%${name}-${adjective}%`;
-  let count;
-
-  // Get row count of users who share the same name-adj base in referral code
-  const countQuery = `
-    SELECT count(*) AS count 
-    FROM ${process.env.PHOTON_DB_REFERRALS_TABLE}
-    WHERE v2_code like ?`;
-
-  const result = await db.queryAsync(countQuery, [condition]);
-
-  if (result && result.length > 0) {
-    count = result[0].count;
-  } else {
-    count = 1;
-  }
-
-  return `${name}-${adjective}-${count}`;
-};
-
 /**
  * Adds a user to the referralsv2 table
  *
@@ -56,11 +20,11 @@ const createUser = async (user, db) => {
     throw new Error('Missing platform id for user');
   }
 
-  if (!user.v1_code && !user.v2_code) {
-    throw new Error('Missing a referral code for user');
+  if (!user.referred_by) {
+    throw new Error(`Missing referrer's referral code`);
   }
 
-  const referralCode = await generateReferralCode(user);
+  const referralCode = await generateReferralCode(user, db);
 
   const data = {
     sms_user_id: user.sms_user_id,
@@ -69,7 +33,7 @@ const createUser = async (user, db) => {
     kik_user_id: user.kik_user_id,
     v1_code: user.v1_code,
     v2_code: referralCode,
-    referred_by: user.referred_by,
+    referred_by: user.referred_by
   };
 
   try {
@@ -79,59 +43,6 @@ const createUser = async (user, db) => {
   } catch (err) {
     throw new Error(`Error saving user to referrals db`);
   }
-};
-
-/**
- * Returns platform of referrer. If user is on > 1 platform,
- * uses defaultPlatform if passed or the first platform found.
- *
- * @param referrer {object}
- * @param db {object} Database connection
- * @return {object}
- *  .platform {string}
- *  .platformId {string}
- */
-const getReferrerPlatform = (referrer, defaultPlatform) => {
-  const keysWithValues = Object.keys(referrer).filter(key => {
-    return referrer[key];
-  });
-
-  let platforms = [];
-
-  for (var i = 0; i < keysWithValues.length; i++) {
-    switch (keysWithValues[i]) {
-      case 'sms_user_id':
-        platforms.push('sms');
-        break;
-
-      case 'fb_user_id':
-        platforms.push('fb');
-        break;
-
-      case 'glow_user_id':
-        platforms.push('app');
-        break;
-
-      case 'kik_user_id':
-        platforms.push('kik');
-        break;
-
-      default:
-    }
-  }
-
-  let platformToUse;
-
-  if (platforms.length > 1 && platforms.indexOf(defaultPlatform) > -1) {
-    platformToUse = defaultPlatform;
-  } else {
-    platformToUse = platforms[0];
-  }
-
-  return {
-    platform: platformToUse,
-    platformId: referrer[`${platformToUse}_user_id`],
-  };
 };
 
 /**
@@ -145,20 +56,24 @@ const getReferrerPlatform = (referrer, defaultPlatform) => {
  *      .platform {string} platform of referrer
 
  */
-const getReferrerInfo = async (referralCode, db) => {
+const getReferrerInfo = async (referrer, db) => {
   try {
+    const { referralCode, defaultPlatform } = referrer;
     const referrerQuery = `SELECT *
     FROM ${process.env.DB_REFERRALS_TABLE}
     WHERE v2_code = ${referralCode}
     OR v1_code = ${referralCode}`;
-    const result = db.queryAsync(referrerQuery);
+
+    const result = await db.queryAsync(referrerQuery);
 
     if (result && result.length > 0) {
-      const { platform, platformId } = getReferrerPlatform(result[0]);
-
+      const { platform, platformId } = getReferrerPlatformId(
+        result[0],
+        defaultPlatform
+      );
+      let countQuery;
       // Get referral count of user
       if (result[0].v1_code && result[0].v2_code) {
-        let countQuery;
         countQuery = `
         SELECT count(*)
         FROM ${process.env.DB_REFERRALS_TABLE}
@@ -173,15 +88,15 @@ const getReferrerInfo = async (referralCode, db) => {
       }
 
       try {
-        const count = db.queryAsync(countQuery);
+        const count = await db.queryAsync(countQuery);
 
         return {
           referralCount: count,
           platform,
-          platformId,
+          platformId
         };
       } catch (err) {
-        throw new Error('Error querying user referral count: ', err.message);
+        console.log('Error querying user referral count: ', err.message);
       }
     }
   } catch (err) {
@@ -199,7 +114,7 @@ const publishReferralEvent = (topic, eventData) => {
   const message = JSON.stringify(eventData);
   const snsParams = {
     Message: message,
-    TopicArn: topic,
+    TopicArn: topic
   };
 
   sns.publish(snsParams, (err, data) => {
@@ -215,5 +130,5 @@ const publishReferralEvent = (topic, eventData) => {
 module.exports = {
   createUser,
   getReferrerInfo,
-  publishReferralEvent,
+  publishReferralEvent
 };
