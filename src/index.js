@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 const { getReferrerPlatformId, generateReferralCode } = require('./helper');
 const sns = new AWS.SNS({
-  region: process.env.SERVICE_REGION
+  region: process.env.SERVICE_REGION,
 });
 /**
  * Adds a user to the referralsv2 table
@@ -33,7 +33,7 @@ const createUser = async (user, db) => {
     kik_user_id: user.kik_user_id,
     v1_code: user.v1_code,
     v2_code: referralCode,
-    referred_by: user.referred_by
+    referred_by: user.referred_by,
   };
 
   try {
@@ -93,7 +93,7 @@ const getReferrerInfo = async (referrer, db) => {
         return {
           referralCount: count,
           platform,
-          platformId
+          platformId,
         };
       } catch (err) {
         console.log('Error querying user referral count: ', err.message);
@@ -114,7 +114,7 @@ const publishReferralEvent = (topic, eventData) => {
   const message = JSON.stringify(eventData);
   const snsParams = {
     Message: message,
-    TopicArn: topic
+    TopicArn: topic,
   };
 
   sns.publish(snsParams, (err, data) => {
@@ -130,5 +130,5 @@ const publishReferralEvent = (topic, eventData) => {
 module.exports = {
   createUser,
   getReferrerInfo,
-  publishReferralEvent
+  publishReferralEvent,
 };

@@ -4,8 +4,8 @@ const expect = require('chai').expect;
 const {
   createUser,
   getReferrerInfo,
-  publishReferralEvent
-} = require('./index');
+  publishReferralEvent,
+} = require('../src/index');
 
 describe('Nova', () => {
   let mockDb;
@@ -13,7 +13,7 @@ describe('Nova', () => {
   describe('#createUser', () => {
     beforeEach(() => {
       mockDb = {
-        queryAsync: sinon.stub()
+        queryAsync: sinon.stub(),
       };
       mockDb.queryAsync.resolves([]);
     });
@@ -21,7 +21,7 @@ describe('Nova', () => {
       const mockUser = {
         first_name: 'leo',
         fb_user_id: 985411724905343,
-        referred_by: 'classy-chris-10'
+        referred_by: 'classy-chris-10',
       };
 
       createUser(mockUser, mockDb).then(result => {
@@ -59,7 +59,7 @@ describe('Nova', () => {
   describe('#getReferrerInfo', () => {
     beforeEach(() => {
       mockDb = {
-        queryAsync: sinon.stub()
+        queryAsync: sinon.stub(),
       };
       mockDb.queryAsync
         .onCall(0)
@@ -71,8 +71,8 @@ describe('Nova', () => {
             kik_user_id: 45,
             v1_code: 'dbXYXkPa',
             v2_code: 'bedazzled-cat-209',
-            referred_by: 'super-jon-10'
-          }
+            referred_by: 'super-jon-10',
+          },
         ])
         .onCall(1)
         .resolves(5);
@@ -86,7 +86,7 @@ describe('Nova', () => {
         expect(result).to.deep.equal({
           referralCount: 5,
           platform: 'fb',
-          platformId: 985411724905343
+          platformId: 985411724905343,
         });
         done();
       });
@@ -97,18 +97,18 @@ describe('Nova', () => {
     let mockSNSPublishSpy;
     beforeEach(() => {
       mockSNSPublishSpy = sinon.stub(AWS.SNS.prototype, 'makeRequest').returns({
-        publish: sinon.spy()
+        publish: sinon.spy(),
       });
     });
 
     it('should call publish the SNS topic', () => {
       publishReferralEvent('test-topic', {
         newUser: {
-          test_data: 'test'
+          test_data: 'test',
         },
         referrer: {
-          test_data: 'test'
-        }
+          test_data: 'test',
+        },
       });
       expect(mockSNSPublishSpy.calledOnce);
     });

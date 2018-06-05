@@ -1,5 +1,5 @@
-const { PLATFORM_USER_IDS, PLATFORMS } = require('./constants');
-const ADJECTIVES = require('./adjectives');
+const { PLATFORM_USER_IDS, PLATFORMS } = require('./constants/platforms');
+const ADJECTIVES = require('./constants/adjectives');
 /**
  * Generates referral code for a new user in the following format:
  * ${adjective} - ${first_name || 'shine'} - ${count}
@@ -25,7 +25,6 @@ const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
 
   if (result && result.length > 0) {
     count = result[0].count + 1;
-    console.log('count: ', count);
   } else {
     count = 1;
   }
@@ -82,11 +81,11 @@ const getReferrerPlatformId = (referrer, defaultPlatform) => {
 
   return {
     platform: platformToUse,
-    platformId: referrer[`${platformToUse}_user_id`]
+    platformId: referrer[`${platformToUse}_user_id`],
   };
 };
 
 module.exports = {
   getReferrerPlatformId,
-  generateReferralCode
+  generateReferralCode,
 };
