@@ -36,31 +36,28 @@ describe('#generateReferralCode', () => {
       done();
     });
   });
-});
-
-describe('#getReferrerPlatformId', () => {
-  let referrer;
-  beforeEach(() => {
-    referrer = {
-      sms_user_id: 63,
-      fb_user_id: 985411724905343,
-      glow_user_id: 2,
-      kik_user_id: 45,
-      v1_code: 'dbXYXkPa',
-      v2_code: 'bedazzled-cat-209',
-      referred_by: 'super-jon-10',
+  it(`should return a string with a count that is the db count of the shared base code incremented by 1`, done => {
+    mockDb = {
+      queryAsync: sinon.stub().resolves([{ count: 3 }]),
     };
-  });
-  it(`should return an object with the default platform and user's id for that platform`, () => {
-    const defaultPlatform = 'fb';
-    const result = getReferrerPlatformId(referrer, defaultPlatform);
-    expect(result).to.deep.equal({
-      platform: 'fb',
-      platformId: 985411724905343,
+    generateReferralCode(
+      { first_name: 'sandy' },
+      mockDb,
+      randomizeList
+    ).then(result => {
+      expect(result[result.length - 1]).to.equal(`4`);
     });
-  });
-  it(`should return an object with the first platform found if defaultPlatform arg is not provided`, () => {
-    const result = getReferrerPlatformId(referrer);
-    expect(result).to.deep.equal({ platform: 'sms', platformId: 63 });
+
+    mockDb = {
+      queryAsync: sinon.stub().resolves([{ count: 0 }]),
+    };
+    generateReferralCode(
+      { first_name: 'sandy' },
+      mockDb,
+      randomizeList
+    ).then(result => {
+      expect(result[result.length - 1]).to.equal(`1`);
+      done();
+    });
   });
 });

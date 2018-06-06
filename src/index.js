@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { getReferrerPlatformId, generateReferralCode } = require('./helper');
+const { generateReferralCode } = require('./helper');
 const sns = new AWS.SNS({
   region: process.env.SERVICE_REGION,
 });
@@ -41,6 +41,7 @@ const createUser = async (user, db) => {
     await db.queryAsync(query, [data]);
     return data;
   } catch (err) {
+    console.log(err);
     throw new Error(`Error saving user to referrals db`);
   }
 };
@@ -53,54 +54,61 @@ const createUser = async (user, db) => {
  * @param db {object} Database connection
  * @return {Promise} user object
  *      .referral_count {number} User's referral count,
- *      .platform {string} platform of referrer
+ *      .platforms {object} platforms of referrer
 
  */
 const getReferrerInfo = async (referrer, db) => {
   try {
-    const { referralCode, defaultPlatform } = referrer;
+    const { referralCode } = referrer;
     const referrerQuery = `SELECT *
     FROM ${process.env.DB_REFERRALS_TABLE}
-    WHERE v2_code = ${referralCode}
-    OR v1_code = ${referralCode}`;
+    WHERE v2_code = ? 
+    OR v1_code = ?`;
 
-    const result = await db.queryAsync(referrerQuery);
+    const result = await db.queryAsync(referrerQuery, [
+      `${referralCode}`,
+      `${referralCode}`,
+    ]);
 
     if (result && result.length > 0) {
-      const { platform, platformId } = getReferrerPlatformId(
-        result[0],
-        defaultPlatform
-      );
+      const { sms_user_id, fb_user_id, glow_user_id, kik_user_id } = result[0];
+
       let countQuery;
       // Get referral count of user
       if (result[0].v1_code && result[0].v2_code) {
         countQuery = `
-        SELECT count(*)
+        SELECT count(*) AS count
         FROM ${process.env.DB_REFERRALS_TABLE}
-        WHERE referred_by = ${result[0].v2_code}
-        OR referred_by = ${result[0].v1_code};`;
+        WHERE referred_by = ?
+        OR referred_by = ?`;
       } else {
         countQuery = `
-        SELECT count(*)
+        SELECT count(*) AS count
         FROM ${process.env.DB_REFERRALS_TABLE}
-        WHERE referred_by = ${user.v2_code}
+        WHERE referred_by = ?
       )`;
       }
 
-      try {
-        const count = await db.queryAsync(countQuery);
+      const count = await db.queryAsync(countQuery, [
+        `${result[0].v2_code}`,
+        `${result[0].v1_code}`,
+      ]);
 
-        return {
-          referralCount: count,
-          platform,
-          platformId,
-        };
-      } catch (err) {
-        console.log('Error querying user referral count: ', err.message);
-      }
+      return {
+        referralCount: count,
+        platforms: {
+          sms_user_id,
+          fb_user_id,
+          glow_user_id,
+          kik_user_id,
+        },
+      };
     }
   } catch (err) {
-    throw new Error('No user found with given referral code:', err.message);
+    throw new Error(
+      'An error occurred while querying referrer and referral count:',
+      err
+    );
   }
 };
 

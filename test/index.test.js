@@ -80,37 +80,20 @@ describe('Nova', () => {
 
     it(`should return an object with properties for a user's referral count and platforms they're on`, done => {
       getReferrerInfo(
-        { referralCode: 'bedazzled-cat-209', defaultPlatform: 'fb' },
+        { referralCode: 'bedazzled-cat-209' },
         mockDb
       ).then(result => {
         expect(result).to.deep.equal({
           referralCount: 5,
-          platform: 'fb',
-          platformId: 985411724905343,
+          platforms: {
+            fb_user_id: 985411724905343,
+            sms_user_id: 63,
+            glow_user_id: 2,
+            kik_user_id: 45,
+          },
         });
         done();
       });
-    });
-  });
-
-  describe('#publishReferralEvent', () => {
-    let mockSNSPublishSpy;
-    beforeEach(() => {
-      mockSNSPublishSpy = sinon.stub(AWS.SNS.prototype, 'makeRequest').returns({
-        publish: sinon.spy(),
-      });
-    });
-
-    it('should call publish the SNS topic', () => {
-      publishReferralEvent('test-topic', {
-        newUser: {
-          test_data: 'test',
-        },
-        referrer: {
-          test_data: 'test',
-        },
-      });
-      expect(mockSNSPublishSpy.calledOnce);
     });
   });
 });
