@@ -132,7 +132,7 @@ const adjectives = [
   'witty',
   'wonderful',
   'zappy',
-  'zestful'
+  'zestful',
 ];
 
 module.exports = adjectives;

@@ -5,9 +5,9 @@
     "node": "v8.10"
   },
   "description": "Utility package for cross-platform user referrals",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "npm run test",
+    "test": "mocha test/**.test.js",
     "start": "node -r dotenv/config index.js"
   },
   "author": "",
@@ -15,5 +15,10 @@
   "dependencies": {
     "aws-sdk": "^2.246.1",
     "dotenv": "^5.0.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "sinon": "^5.0.10"
   }
 }
