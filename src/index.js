@@ -20,10 +20,6 @@ const createUser = async (user, db) => {
     throw new Error('Missing platform id for user');
   }
 
-  if (!user.referred_by) {
-    throw new Error(`Missing referrer's referral code`);
-  }
-
   const referralCode = await generateReferralCode(user, db);
 
   const data = {

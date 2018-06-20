@@ -1,4 +1,5 @@
 const ADJECTIVES = require('./constants/adjectives');
+
 /**
  * Generates referral code for a new user in the following format:
  * ${adjective} - ${first_name || 'shine'} - ${count}
@@ -32,5 +33,5 @@ const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
 };
 
 module.exports = {
-  generateReferralCode,
+  generateReferralCode
 };
