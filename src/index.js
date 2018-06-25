@@ -50,12 +50,12 @@ const getReferralCode = async (user, db) => {
       { fb_user_id: user.id },
     ]);
 
-    if (result && result.length > 0) {
-      return result[0];
+    if (result && result.length < 1) {
+      throw new Error(`No ${platform} user ${user.id} found`);
     }
+    return result[0];
   } catch (err) {
-    console.log(err.message);
-    throw new Error(err);
+    console.error(err.message);
   }
 };
 
