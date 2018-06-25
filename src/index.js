@@ -42,12 +42,12 @@ const createUser = async (user, db) => {
   }
 };
 
-const getReferralCode = async (user, db) => {
+const getReferralCode = async (user, platform, db) => {
   try {
     const query = `SELECT * FROM ${process.env.DB_REFERRALS_TABLE} WHERE ?`;
 
     const result = await db.queryAsync(referrerQuery, [
-      { fb_user_id: user.id },
+      { [`${platform}_user_id`]: user.id },
     ]);
 
     if (result && result.length < 1) {
