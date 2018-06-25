@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 const { generateReferralCode } = require('./helper');
 const sns = new AWS.SNS({
-  region: process.env.SERVICE_REGION
+  region: process.env.SERVICE_REGION,
 });
 /**
  * Adds a user to the referralsv2 table
@@ -29,7 +29,7 @@ const createUser = async (user, db) => {
     kik_user_id: user.kik_user_id,
     v1_code: user.v1_code,
     v2_code: referralCode,
-    referred_by: user.referred_by
+    referred_by: user.referred_by,
   };
 
   try {
@@ -47,7 +47,7 @@ const getReferralCode = async (user, db) => {
     const query = `SELECT * FROM ${process.env.DB_REFERRALS_TABLE} WHERE ?`;
 
     const result = await db.queryAsync(referrerQuery, [
-      { fb_user_id: user.id }
+      { fb_user_id: user.id },
     ]);
 
     if (result && result.length > 0) {
@@ -77,7 +77,7 @@ const getReferralCount = async (user, db) => {
 
   const count = await db.queryAsync(countQuery, [
     `${result[0].v2_code}`,
-    `${result[0].v1_code}`
+    `${result[0].v1_code}`,
   ]);
 
   return count;
@@ -104,7 +104,7 @@ const getReferrerInfo = async (referrer, db) => {
 
     const result = await db.queryAsync(referrerQuery, [
       `${referralCode}`,
-      `${referralCode}`
+      `${referralCode}`,
     ]);
 
     if (result && result.length > 0) {
@@ -118,8 +118,8 @@ const getReferrerInfo = async (referrer, db) => {
           sms_user_id,
           fb_user_id,
           glow_user_id,
-          kik_user_id
-        }
+          kik_user_id,
+        },
       };
     }
   } catch (err) {
@@ -140,7 +140,7 @@ const publishReferralEvent = (topic, eventData) => {
   const message = JSON.stringify(eventData);
   const snsParams = {
     Message: message,
-    TopicArn: topic
+    TopicArn: topic,
   };
 
   sns.publish(snsParams, (err, data) => {
@@ -158,5 +158,5 @@ module.exports = {
   getReferralCode,
   getReferralCount,
   getReferrerInfo,
-  publishReferralEvent
+  publishReferralEvent,
 };

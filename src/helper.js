@@ -33,5 +33,5 @@ const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
 };
 
 module.exports = {
-  generateReferralCode
+  generateReferralCode,
 };

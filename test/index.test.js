@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const {
   createUser,
   getReferrerInfo,
-  publishReferralEvent
+  publishReferralEvent,
 } = require('../src/index');
 
 describe('Nova', () => {
@@ -13,7 +13,7 @@ describe('Nova', () => {
   describe('#createUser', () => {
     beforeEach(() => {
       mockDb = {
-        queryAsync: sinon.stub()
+        queryAsync: sinon.stub(),
       };
       mockDb.queryAsync.resolves([]);
     });
@@ -21,7 +21,7 @@ describe('Nova', () => {
       const mockUser = {
         first_name: 'leo',
         fb_user_id: 9,
-        referred_by: 'classy-chris-10'
+        referred_by: 'classy-chris-10',
       };
 
       createUser(mockUser, mockDb).then(result => {
@@ -59,7 +59,7 @@ describe('Nova', () => {
   describe('#getReferrerInfo', () => {
     beforeEach(() => {
       mockDb = {
-        queryAsync: sinon.stub()
+        queryAsync: sinon.stub(),
       };
       mockDb.queryAsync
         .onCall(0)
@@ -71,8 +71,8 @@ describe('Nova', () => {
             kik_user_id: 45,
             v1_code: 'dbXYXkPa',
             v2_code: 'bedazzled-cat-209',
-            referred_by: 'super-jon-10'
-          }
+            referred_by: 'super-jon-10',
+          },
         ])
         .onCall(1)
         .resolves(5);
@@ -87,8 +87,8 @@ describe('Nova', () => {
               fb_user_id: 98,
               sms_user_id: 63,
               glow_user_id: 2,
-              kik_user_id: 45
-            }
+              kik_user_id: 45,
+            },
           });
           done();
         }
