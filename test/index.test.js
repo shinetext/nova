@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const {
   createUser,
   getReferrerInfo,
-  publishReferralEvent,
+  publishReferralEvent
 } = require('../src/index');
 
 describe('Nova', () => {
@@ -13,15 +13,15 @@ describe('Nova', () => {
   describe('#createUser', () => {
     beforeEach(() => {
       mockDb = {
-        queryAsync: sinon.stub(),
+        queryAsync: sinon.stub()
       };
       mockDb.queryAsync.resolves([]);
     });
     it('should create a user record with an assigned referral code', done => {
       const mockUser = {
         first_name: 'leo',
-        fb_user_id: 985411724905343,
-        referred_by: 'classy-chris-10',
+        fb_user_id: 9,
+        referred_by: 'classy-chris-10'
       };
 
       createUser(mockUser, mockDb).then(result => {
@@ -59,41 +59,40 @@ describe('Nova', () => {
   describe('#getReferrerInfo', () => {
     beforeEach(() => {
       mockDb = {
-        queryAsync: sinon.stub(),
+        queryAsync: sinon.stub()
       };
       mockDb.queryAsync
         .onCall(0)
         .resolves([
           {
             sms_user_id: 63,
-            fb_user_id: 985411724905343,
+            fb_user_id: 98,
             glow_user_id: 2,
             kik_user_id: 45,
             v1_code: 'dbXYXkPa',
             v2_code: 'bedazzled-cat-209',
-            referred_by: 'super-jon-10',
-          },
+            referred_by: 'super-jon-10'
+          }
         ])
         .onCall(1)
         .resolves(5);
     });
 
     it(`should return an object with properties for a user's referral count and platforms they're on`, done => {
-      getReferrerInfo(
-        { referralCode: 'bedazzled-cat-209' },
-        mockDb
-      ).then(result => {
-        expect(result).to.deep.equal({
-          referralCount: 5,
-          platforms: {
-            fb_user_id: 985411724905343,
-            sms_user_id: 63,
-            glow_user_id: 2,
-            kik_user_id: 45,
-          },
-        });
-        done();
-      });
+      getReferrerInfo({ referralCode: 'bedazzled-cat-209' }, mockDb).then(
+        result => {
+          expect(result).to.deep.equal({
+            referralCount: 5,
+            platforms: {
+              fb_user_id: 98,
+              sms_user_id: 63,
+              glow_user_id: 2,
+              kik_user_id: 45
+            }
+          });
+          done();
+        }
+      );
     });
   });
 });
