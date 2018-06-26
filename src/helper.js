@@ -11,7 +11,7 @@ const ADJECTIVES = require('./constants/adjectives');
  */
 const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
   const adjective = `${wordList[Math.floor(Math.random() * wordList.length)]}`;
-  const name = `${data.first_name || 'shine'}`;
+  const name = `${data.first_name || 'shine'}`.toLowerCase();
   const condition = `%${adjective}-${name}%`;
   let count;
 

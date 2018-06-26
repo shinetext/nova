@@ -56,6 +56,9 @@ const getReferralCode = async (user, platform, db) => {
     return result[0];
   } catch (err) {
     console.error(err.message);
+    throw new Error(
+      `An error occurred getting referral code for ${user}: ${err}`
+    );
   }
 };
 
@@ -75,12 +78,16 @@ const getReferralCount = async (user, db) => {
       )`;
   }
 
-  const count = await db.queryAsync(countQuery, [
-    `${result[0].v2_code}`,
-    `${result[0].v1_code}`,
-  ]);
+  try {
+    const count = await db.queryAsync(countQuery, [
+      `${user.v2_code}`,
+      `${user.v1_code}`,
+    ]);
 
-  return count;
+    return count;
+  } catch (err) {
+    throw new Error('An error occurred getting referral count: ', err);
+  }
 };
 
 /**
@@ -109,8 +116,7 @@ const getReferrerInfo = async (referrer, db) => {
 
     if (result && result.length > 0) {
       const { sms_user_id, fb_user_id, glow_user_id, kik_user_id } = result[0];
-
-      const count = await getReferralCount(result[0]);
+      const count = await getReferralCount(result[0], db);
 
       return {
         referralCount: count,

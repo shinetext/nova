@@ -1,5 +1,5 @@
 {
-  "name": "nova",
+  "name": "@shinetext/nova",
   "version": "1.0.0",
   "engines": {
     "node": "v8.10"
