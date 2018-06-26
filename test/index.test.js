@@ -20,7 +20,7 @@ describe('Nova', () => {
     it('should create a user record with an assigned referral code', done => {
       const mockUser = {
         first_name: 'leo',
-        fb_user_id: 985411724905343,
+        fb_user_id: 9,
         referred_by: 'classy-chris-10',
       };
 
@@ -66,7 +66,7 @@ describe('Nova', () => {
         .resolves([
           {
             sms_user_id: 63,
-            fb_user_id: 985411724905343,
+            fb_user_id: 98,
             glow_user_id: 2,
             kik_user_id: 45,
             v1_code: 'dbXYXkPa',
@@ -79,21 +79,20 @@ describe('Nova', () => {
     });
 
     it(`should return an object with properties for a user's referral count and platforms they're on`, done => {
-      getReferrerInfo(
-        { referralCode: 'bedazzled-cat-209' },
-        mockDb
-      ).then(result => {
-        expect(result).to.deep.equal({
-          referralCount: 5,
-          platforms: {
-            fb_user_id: 985411724905343,
-            sms_user_id: 63,
-            glow_user_id: 2,
-            kik_user_id: 45,
-          },
-        });
-        done();
-      });
+      getReferrerInfo({ referralCode: 'bedazzled-cat-209' }, mockDb).then(
+        result => {
+          expect(result).to.deep.equal({
+            referralCount: 5,
+            platforms: {
+              fb_user_id: 98,
+              sms_user_id: 63,
+              glow_user_id: 2,
+              kik_user_id: 45,
+            },
+          });
+          done();
+        }
+      );
     });
   });
 });

@@ -42,6 +42,47 @@ const createUser = async (user, db) => {
   }
 };
 
+const getReferralCode = async (user, platform, db) => {
+  try {
+    const query = `SELECT * FROM ${process.env.DB_REFERRALS_TABLE} WHERE ?`;
+
+    const result = await db.queryAsync(referrerQuery, [
+      { [`${platform}_user_id`]: user.id },
+    ]);
+
+    if (result && result.length < 1) {
+      throw new Error(`No ${platform} user ${user.id} found`);
+    }
+    return result[0];
+  } catch (err) {
+    console.error(err.message);
+  }
+};
+
+const getReferralCount = async (user, db) => {
+  let countQuery;
+  if (user.v1_code && user.v2_code) {
+    countQuery = `
+        SELECT count(*) AS count
+        FROM ${process.env.DB_REFERRALS_TABLE}
+        WHERE referred_by = ?
+        OR referred_by = ?`;
+  } else {
+    countQuery = `
+        SELECT count(*) AS count
+        FROM ${process.env.DB_REFERRALS_TABLE}
+        WHERE referred_by = ?
+      )`;
+  }
+
+  const count = await db.queryAsync(countQuery, [
+    `${result[0].v2_code}`,
+    `${result[0].v1_code}`,
+  ]);
+
+  return count;
+};
+
 /**
  * Gets a user's referral count and all platforms they're on.
  *
@@ -69,26 +110,7 @@ const getReferrerInfo = async (referrer, db) => {
     if (result && result.length > 0) {
       const { sms_user_id, fb_user_id, glow_user_id, kik_user_id } = result[0];
 
-      let countQuery;
-      // Get referral count of user
-      if (result[0].v1_code && result[0].v2_code) {
-        countQuery = `
-        SELECT count(*) AS count
-        FROM ${process.env.DB_REFERRALS_TABLE}
-        WHERE referred_by = ?
-        OR referred_by = ?`;
-      } else {
-        countQuery = `
-        SELECT count(*) AS count
-        FROM ${process.env.DB_REFERRALS_TABLE}
-        WHERE referred_by = ?
-      )`;
-      }
-
-      const count = await db.queryAsync(countQuery, [
-        `${result[0].v2_code}`,
-        `${result[0].v1_code}`,
-      ]);
+      const count = await getReferralCount(result[0]);
 
       return {
         referralCount: count,
@@ -133,6 +155,8 @@ const publishReferralEvent = (topic, eventData) => {
 
 module.exports = {
   createUser,
+  getReferralCode,
+  getReferralCount,
   getReferrerInfo,
   publishReferralEvent,
 };
