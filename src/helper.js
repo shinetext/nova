@@ -18,7 +18,7 @@ const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
   // Get row count of users who share the same adj-name base in referral code
   const countQuery = `
     SELECT count(*) AS count 
-    FROM ${process.env.PHOTON_DB_REFERRALS_TABLE}
+    FROM ${process.env.DB_REFERRALS_TABLE}
     WHERE v2_code like ?`;
 
   const result = await db.queryAsync(countQuery, [condition]);

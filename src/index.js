@@ -33,7 +33,7 @@ const createUser = async (user, db) => {
   };
 
   try {
-    const query = `INSERT INTO ${process.env.PHOTON_DB_REFERRALS_TABLE} SET ?`;
+    const query = `INSERT INTO ${process.env.DB_REFERRALS_TABLE} SET ?`;
     await db.queryAsync(query, [data]);
     return data;
   } catch (err) {
