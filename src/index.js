@@ -13,7 +13,7 @@ const sns = new AWS.SNS({
  *  .referred_by {string}
  *  .fb_user_id {number}
  * @param db {object} Database connection
- * @return Promise
+ * @return Promise generated referral code
  */
 const createUser = async (user, db) => {
   if (!user.fb_user_id &&
@@ -70,7 +70,7 @@ const getReferralCode = async (user, platform, db) => {
   } catch (err) {
     console.error(err.message);
     throw new Error(
-      `An error occurred getting referral code for ${user}: ${err}`
+      `An error occurred getting referral code for ${JSON.stringify(user)}: ${JSON.stringify(err)}`
     );
   }
 };
