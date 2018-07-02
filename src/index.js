@@ -1,5 +1,7 @@
 const AWS = require('aws-sdk');
-const { generateReferralCode } = require('./helper');
+const {
+  generateReferralCode
+} = require('./helper');
 const sns = new AWS.SNS({
   region: process.env.SERVICE_REGION,
 });
@@ -11,8 +13,7 @@ const sns = new AWS.SNS({
  * @return Promise
  */
 const createUser = async (user, db) => {
-  if (
-    !user.fb_user_id &&
+  if (!user.fb_user_id &&
     !user.sms_user_id &&
     !user.glow_user_id &&
     !user.kik_user_id
@@ -46,14 +47,14 @@ const getReferralCode = async (user, platform, db) => {
   try {
     const query = `SELECT * FROM ${process.env.DB_REFERRALS_TABLE} WHERE ?`;
 
-    const result = await db.queryAsync(referrerQuery, [
-      { [`${platform}_user_id`]: user.id },
-    ]);
+    const result = await db.queryAsync(query, [{
+      [`${platform}_user_id`]: user.id
+    }, ]);
 
     if (result && result.length < 1) {
       throw new Error(`No ${platform} user ${user.id} found`);
     }
-    return result[0];
+    return result[0].v2_code;
   } catch (err) {
     console.error(err.message);
     throw new Error(
@@ -103,7 +104,9 @@ const getReferralCount = async (user, db) => {
  */
 const getReferrerInfo = async (referrer, db) => {
   try {
-    const { referralCode } = referrer;
+    const {
+      referralCode
+    } = referrer;
     const referrerQuery = `SELECT *
     FROM ${process.env.DB_REFERRALS_TABLE}
     WHERE v2_code = ? 
@@ -115,7 +118,12 @@ const getReferrerInfo = async (referrer, db) => {
     ]);
 
     if (result && result.length > 0) {
-      const { sms_user_id, fb_user_id, glow_user_id, kik_user_id } = result[0];
+      const {
+        sms_user_id,
+        fb_user_id,
+        glow_user_id,
+        kik_user_id
+      } = result[0];
       const count = await getReferralCount(result[0], db);
 
       return {
