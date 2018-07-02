@@ -8,7 +8,10 @@ const sns = new AWS.SNS({
 /**
  * Adds a user to the referralsv2 table
  *
- * @param user {object} User to add
+ * @param user {object} User to add 
+ *  .first_name {str}
+ *  .referred_by {string}
+ *  .fb_user_id {number}
  * @param db {object} Database connection
  * @return Promise
  */
@@ -43,6 +46,15 @@ const createUser = async (user, db) => {
   }
 };
 
+/**
+ * Gets a user's referral code
+ *
+ * @param user {object}
+ *  .fb_user_id || sms_user_id || glow_user_id || kik_user_id {number}
+ * @param {string} platform (ie. 'fb', 'sms')
+ * @param db {object} Database connection
+ * @return Promise
+ */
 const getReferralCode = async (user, platform, db) => {
   try {
     const query = `SELECT * FROM ${process.env.DB_REFERRALS_TABLE} WHERE ?`;
@@ -63,6 +75,15 @@ const getReferralCode = async (user, platform, db) => {
   }
 };
 
+/**
+ * Gets a user's referral count
+ *
+ * @param user {object}
+ *  .v2_code {string} ie. 'classy-chris-2'
+ *  .v1_code {string} ie. 'dbXYXkPa'
+ * @param db {object} Database connection
+ * @return Promise
+ */
 const getReferralCount = async (user, db) => {
   let countQuery;
   if (user.v1_code && user.v2_code) {
