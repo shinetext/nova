@@ -1,5 +1,18 @@
 const ADJECTIVES = require('./constants/adjectives');
 
+const formatName = (name) => {
+  if (!name || name.indexOf('?') !== -1) {
+    return 'shine';
+  }
+  const parsed = name
+    .trim()
+    .replace(/[\W_]/g, '-') // Replace non-alphanumeric chars with -
+    .replace(/\-\-+/g, '-') // Consolidate multiple hyphens
+    .replace(/(^-)|(-$)/g, ""); // Remove leading & trailing hypens
+
+  return parsed.toLowerCase();
+};
+
 /**
  * Generates referral code for a new user in the following format:
  * ${adjective} - ${first_name || 'shine'} - ${count}
@@ -11,7 +24,8 @@ const ADJECTIVES = require('./constants/adjectives');
  */
 const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
   const adjective = `${wordList[Math.floor(Math.random() * wordList.length)]}`;
-  const name = `${data.first_name || 'shine'}`.toLowerCase();
+  const name = formatName(data.first_name);
+
   const condition = `%${adjective}-${name}%`;
   let count;
 
@@ -34,4 +48,5 @@ const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
 
 module.exports = {
   generateReferralCode,
+  formatName,
 };
