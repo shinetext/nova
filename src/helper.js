@@ -34,7 +34,7 @@ const generateReferralCode = async (data, db, wordList = ADJECTIVES) => {
   const adjective = `${wordList[Math.floor(Math.random() * wordList.length)]}`;
   const name = formatName(data.first_name);
 
-  const condition = `%${adjective}-${name}%`;
+  const condition = `${adjective}-${name}%`;
   let count;
 
   // Get row count of users who share the same adj-name base in referral code
