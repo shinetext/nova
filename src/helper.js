@@ -1,16 +1,24 @@
 const ADJECTIVES = require('./constants/adjectives');
 
 const formatName = (name) => {
+
+  // If no name is provided, or
+  // if name contains unicode chars, ie. non-latin-based names,
+  // default to 'shine'
   if (!name || name.indexOf('?') !== -1) {
     return 'shine';
   }
-  const parsed = name
-    .trim()
-    .replace(/[\W_]/g, '-') // Replace non-alphanumeric chars with -
-    .replace(/\-\-+/g, '-') // Consolidate multiple hyphens
-    .replace(/(^-)|(-$)/g, ""); // Remove leading & trailing hypens
 
-  return parsed.toLowerCase();
+  const parsed = name
+    .trim() // Trim any leading & trailing white space
+    .split(' ')[0] // Get only 1st part of first name if multiple words in name
+    .replace(/[\W_\d]/g, '') // Strip away non-alphanumeric chars + digits
+    .toLowerCase(); // Standardize casing
+
+  if (parsed) {
+    return parsed;
+  }
+  return 'shine';
 };
 
 /**
