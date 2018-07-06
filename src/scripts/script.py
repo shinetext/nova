@@ -26,22 +26,25 @@ Format name:
 
 
 
+
+
+
 cleaned = []
 tempCode = ""
 code = []
 
 for each in test.testName:
 
-    each = each.lower().strip()
+    each = each.lower().strip() # strip is the same as Trim().
 
     if '?' in each or each == "":
         each = 'shine' # no matter what, if there's a question mark it should become "shine"
 
-    each = each.split()[0] # strip is the same as Trim().
+    each = each.split()[0] 
 
     each = re.sub('[^a-z]', '', each)
 
-    # now, all non-latin names should be null. 
+    # now, all off character names should be null. 
 
     if each == "":
         each = "shine" 
@@ -52,7 +55,7 @@ for each in test.testName:
 
     exists = True
 
-    while exists: # Loops until code is unique. Should 
+    while exists: # Loops until code is unique.  
         if tempCode not in code: 
             exists = False
         else: 
