@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
-import mysql.connector
+import mysql.connector # SQL library of choice 
 import secrets # Local file that contains config info 
 import re # regular expressions
 import adj # 133 adjectives 
@@ -21,18 +21,21 @@ import random # random generation
 
 records = [] # Records from users_fb we need
 codes = [] # generated codes for user_referral_codes_v2
-ids = []
+existingcodes = [] # codes that already exist in user_referral_codes_v2
+ids = [] # auto increment id value from fb_users that is foreign key in user_referral_codes_v2
 
 return_value = "temp"
 
 pull = ""
 
-
-def genNewCode(code): 
+def genNewCode(code): # checks to see if generated code is a duplicate. pretty inefficient.
     exists = True
 
+    set1 = set(codes)
+    set2 = set(existingcodes) # sets are much faster to look up in than lists. 
+
     while exists: # Loops until code is unique.  
-        if code not in codes: 
+        if code not in set1 and code not in set2: 
             exists = False
         else:
             num = code[-1] # Save last character. 
@@ -42,21 +45,33 @@ def genNewCode(code):
 
     return code
 
-# This loop pulls all the records we need. 
+def pull_ids(): # pulls the ids from user_referral_codes_v2 and adds them to existingcodes so that we can check that they are not duplicates
+    print("Pulling existing ids...")
+    cnx = mysql.connector.connect(**secrets.read_replica)
 
+    cursor = cnx.cursor(buffered=True)
 
-def pull_ids(): 
+    pull = "select v2_code from user_referral_codes_v2"
 
-    cnx = mysql.connector.connect(**secrets.config)
+    cursor.execute(pull)
+
+    for ids in cursor:
+        existingcodes.append(ids[0]) 
+
+    print("Existing ids pulled!")
+
+def pull_info(): # pulls id and first_name from users_fb UNLESS the id exists in user_referral_codes_v2. Stores all in memory. 
+    print("Pulling info from users_fb")
+    cnx = mysql.connector.connect(**secrets.read_replica)
 
     cursor = cnx.cursor(buffered=True)
 
     min_id = 0
     max_id = 1000 
 
-    while max_id < 20000 or return_value == '': # until empty string is returned. 
+    while max_id < 100000 or return_value == '': # until empty string is returned. 
 
-        pull = "select id, first_name from users_fb where id >= {0} and id < {1}".format (min_id,  max_id)
+        pull = "select id, first_name from users_fb where id not in (select fb_user_id from user_referral_codes_v2) and id >= {0} and id < {1}".format (min_id,  max_id)
 
         cursor.execute(pull)
 
@@ -68,11 +83,12 @@ def pull_ids():
         # break
 
     cnx.close() 
-
+    print("users_fb info pulled!")
     # generates like 1.3 million user ids and checks them against one another. 
 
+def generateCodes(): # Generates codes
 
-def generateCodes():
+    print("Generating new codes...")
     for fb_messenger_id, first_name in records:
 
         if first_name is None:
@@ -99,36 +115,32 @@ def generateCodes():
 
         codes.append(final)
         ids.append(fb_messenger_id)
+    print("Codes generated!")
 
 def InsertIds(): 
+    print("Inserting ids into local db...")
+    cnx = mysql.connector.connect(**secrets.local)
+    cursor = cnx.cursor(buffered=True)
+
     send = zip(ids, codes) # order is maintained, but we should double check... 
 
-    query = "insert into user_referral_codes_v2 (v2_code, fb_user_id) values %s %s"
-    print(send)
+    query = "insert into user_referral_codes_v2 (fb_user_id, v2_code) values(%s, %s)"
 
-    # cursor.execute(query, send) # Right now, this sends them all at once. Need to figure out how to have this at a smaller scale. 
+    cursor.executemany(query, send) # Right now, this sends them all at once. Need to figure out how to have this at a smaller scale. 
+    
+    cnx.commit()
 
+    cnx.close() 
+    print("ids inserted!")
+
+print("The script begins!")
 
 pull_ids()
+
+pull_info()
 
 generateCodes()
 
 InsertIds()
 
-#for code 
-
-# goes through and inserts into database.
-
-    #push = "insert into user_referral_codes_v2 (id, v2_code, fb_user_id) values %s %s %s"
-
-
-    # is id automaically defined by the schema, or will we need to pull the last record to get the proper id number?
-
-
-
-
-# cnx = mysql.connector.connect(**secrets.config)
-
-# cursor = cnx.cursor()
-
-# cnx.close() 
+print("All done!")
