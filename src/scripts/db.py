@@ -38,8 +38,9 @@ def genNewCode(code): # checks to see if generated code is a duplicate. pretty i
         if code not in set1 and code not in set2: 
             exists = False
         else:
-            num = code[-1] # Save last character. 
-            code = code[:-1] # Splice that removes last character. 
+            last_slash = code.rfind('-')
+            num = code[last_slash-len(code) + 1:] # Save last character. 
+            code = code[:last_slash-len(code) + 1] # Splice that removes last few characters. 
             num = int(num) + 1 # Increment character. 
             code += str(num)
 
@@ -70,7 +71,7 @@ def pull_info(): # pulls id and first_name from users_fb UNLESS the id exists in
     min_id = 0
     max_id = 1000 
 
-    while max_id < 1400000 or return_value == '': # until empty string is returned. 
+    while max_id < 100000 or return_value == '': # until empty string is returned. 
 
         pull = "select id, first_name from users_fb where id not in (select fb_user_id from user_referral_codes_v2) and id >= {0} and id < {1}".format (min_id,  max_id)
 
