@@ -21,8 +21,11 @@ import random # random generation
 
 records = [] # Records from users_fb we need
 codes = [] # generated codes for user_referral_codes_v2
-existingcodes = [] # codes that already exist in user_referral_codes_v2
+# existingcodes = [] 
 ids = [] # auto increment id value from fb_users that is foreign key in user_referral_codes_v2
+set1 = set()# sets are much faster to look up in than lists. 
+set2 = set() # codes that already exist in user_referral_codes_v2
+
 
 return_value = "temp"
 
@@ -30,9 +33,6 @@ pull = ""
 
 def genNewCode(code): # checks to see if generated code is a duplicate. pretty inefficient.
     exists = True
-
-    set1 = set(codes)
-    set2 = set(existingcodes) # sets are much faster to look up in than lists. 
 
     while exists: # Loops until code is unique.  
         if code not in set1 and code not in set2: 
@@ -56,7 +56,8 @@ def pull_ids(): # pulls the ids from user_referral_codes_v2 and adds them to exi
     cursor.execute(pull)
 
     for ids in cursor:
-        existingcodes.append(ids[0]) 
+        set2.add(ids[0]) 
+
 
     print("Existing ids pulled!")
 
@@ -69,7 +70,7 @@ def pull_info(): # pulls id and first_name from users_fb UNLESS the id exists in
     min_id = 0
     max_id = 1000 
 
-    while max_id < 100000 or return_value == '': # until empty string is returned. 
+    while max_id < 1400000 or return_value == '': # until empty string is returned. 
 
         pull = "select id, first_name from users_fb where id not in (select fb_user_id from user_referral_codes_v2) and id >= {0} and id < {1}".format (min_id,  max_id)
 
@@ -114,6 +115,7 @@ def generateCodes(): # Generates codes
         final = genNewCode(tempCode) # checks against store of codes. 
 
         codes.append(final)
+        set1.add(final)
         ids.append(fb_messenger_id)
     print("Codes generated!")
 
