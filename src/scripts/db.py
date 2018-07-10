@@ -100,25 +100,44 @@ def generateCodes(): # Generates codes
         final = genNewCode(tempCode) # checks against store of codes. 
 
         codes.append(final)
+
         set1.add(final)
+
         ids.append(user_id)
+
     print("Codes generated!")
+
+    # ADD FILE OUTPUT. 
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    # from https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks !
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
 
 def InsertIds(): 
     print("Inserting ids into local db...")
-    cnx = mysql.connector.connect(**secrets.local)
-    cursor = cnx.cursor(buffered=True)
 
     send = zip(ids, codes) # order is maintained, but we should double check... 
 
-    query = "insert into user_referral_codes_v2 (fb_user_id, v2_code) values(%s, %s)"
+    ids_and_codes = chunks(send, 100000)
 
-    cursor.executemany(query, send) # Right now, this sends them all at once. Need to figure out how to have this at a smaller scale. 
-    
-    cnx.commit()
+    cnx = mysql.connector.connect(**secrets.local)
 
-    cnx.close() 
-    print("ids inserted!")
+    cursor = cnx.cursor(buffered=True)
+
+    for each in ids_and_codes:
+
+        query = "insert into user_referral_codes_v2 (fb_user_id, v2_code) values(%s, %s)"
+
+        cursor.executemany(query, each) # Right now, this sends them all at once. Need to figure out how to have this at a smaller scale. 
+        
+        cnx.commit()
+
+    cnx.close()
+
+    print(send)
 
 print("The script begins!")
 
@@ -127,5 +146,6 @@ pull_info()
 generateCodes()
 
 InsertIds()
+
 
 print("All done!")
