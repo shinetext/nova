@@ -8,19 +8,48 @@ const {
 let mockDb;
 
 describe('#formatName', () => {
-  it('should handle special char ', () => {
-    expect(formatName('d.j.   khaLid.')).to.equal('d-j-khalid');
-    expect(formatName('d.j.   kha$%#Lid.')).to.equal('d-j-kha-lid');
-    expect(formatName('sharon dev')).to.equal('sharon-dev');
-    expect(formatName('')).to.equal('shine');
-    expect(formatName()).to.equal('shine');
-  });
 
-  it('should replace ???? with shine', () => {
+  it('should replace any names that contain ???? with `shine`', () => {
     expect(formatName('??????#Sally?. .')).to.equal('shine');
+    expect(formatName('?')).to.equal('shine');
   });
 
-})
+  it('should default to `shine` if no first name is provided', () => {
+    expect(formatName()).to.equal('shine');
+    expect(formatName('')).to.equal('shine');
+    expect(formatName('   ')).to.equal('shine');
+  })
+
+  it('should trim leading & trailing white space ', () => {
+    expect(formatName('  dj ')).to.equal('dj');
+  });
+
+  it('should only use 1st part of the name if there are multiple parts in a first name separated by whitespace', () => {
+    expect(formatName('  Ann Marie Josephine')).to.equal('ann');
+    expect(formatName('  Angel Grace Ariel Caroline McWaters')).to.equal('angel');
+    expect(formatName(`d 'mjust  `)).to.equal('d');
+    expect(formatName(`  An'gel Grace'`)).to.equal('angel');
+  });
+
+  it('should strip away any numbers and special chars including punctuation marks', () => {
+    expect(formatName('d.j.')).to.equal('dj');
+    expect(formatName('d.j.   khaLid.')).to.equal('dj');
+    expect(formatName(`d'Angelo`)).to.equal('dangelo');
+    expect(formatName('kha$%#Lid.')).to.equal('khalid');
+    expect(formatName('O`neil!#grace$%&*%^@&*)-=953')).to.equal('oneilgrace');
+  });
+
+  it('should default to `shine` if the name is an empty string after parsing', () => {
+    expect(formatName('   ')).to.equal('shine');
+    expect(formatName('#%^((**))   ')).to.equal('shine');
+    expect(formatName('....')).to.equal('shine');
+    expect(formatName('/')).to.equal('shine');
+    expect(formatName(`' `)).to.equal('shine');
+    expect(formatName(':)')).to.equal('shine');
+  })
+});
+
+
 describe('#generateReferralCode', () => {
   let mockDb, userData, randomizeList;
 

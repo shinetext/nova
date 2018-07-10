@@ -96,18 +96,18 @@ const getReferralCount = async (user, db) => {
     countQuery = `
         SELECT count(*) AS count
         FROM ${process.env.DB_REFERRALS_TABLE}
-        WHERE referred_by = ?
-      )`;
+        WHERE referred_by = ?`;
   }
 
   try {
-    const count = await db.queryAsync(countQuery, [
+    const results = await db.queryAsync(countQuery, [
       `${user.v2_code}`,
       `${user.v1_code}`,
     ]);
+    return results[0].count;
 
-    return count;
   } catch (err) {
+    console.log(err);
     throw new Error('An error occurred getting referral count: ', err);
   }
 };
